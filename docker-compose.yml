@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: root
       POSTGRES_DB: webapp
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -23,16 +23,16 @@ services:
     restart: always
     environment:
       NODE_ENV: production
-      # Notice that the hostname for the database is the service name "db"
-      DATABASE_URL: postgres://arsen:root@db:5432/webapp
+      DB_USERNAME: arsen
+      DB_PASSWORD: root
+      DB_NAME: webapp
+      DB_HOST: db
       PORT: 3000
     ports:
-      - "8200:3000"
+      - "3000:3000"
     depends_on:
       db:
         condition: service_healthy
-    # Optionally, if you have an entrypoint script that runs migrations:
-    # entrypoint: ["./entrypoint.sh"]
 
 volumes:
   postgres_data:

@@ -1,32 +1,38 @@
-# Stage 1: Build the application
-FROM node:16-alpine AS build
+# Stage 1: Build Stage using Node.js 23.7.0-alpine
+FROM node:23.7.0-alpine AS build
 
 WORKDIR /app
 
-# Install dependencies and cache them
+# Copy package files and install all dependencies (including devDependencies)
 COPY package*.json ./
 RUN npm install
 
-# Copy source code and build
+# Copy the rest of your source code (including migrations, configs, etc.)
 COPY . .
-RUN npm run build  # This should output to dist/ (e.g., dist/bundle.js)
 
-# Stage 2: Create the runtime image
-FROM node:16-alpine
+# Build your application (this should produce your bundle in dist/ folder)
+RUN npm run build
+# Expected output: dist/app.js
+
+# Stage 2: Production Stage using Node.js 23.7.0-alpine
+FROM node:23.7.0-alpine
 
 WORKDIR /app
 
-# Copy the built artifacts and minimal files
+# Copy built artifacts and required files from the build stage
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/package*.json ./
+# Copy the entrypoint script
+COPY --from=build /app/entrypoint.sh ./
 
-# Install production dependencies only
+# Install only production dependencies
 RUN npm install --production
 
-# Expose the application's port
+# Ensure the entrypoint script is executable
+RUN chmod +x entrypoint.sh
+
+# Expose the port your application listens on
 EXPOSE 3000
 
-# Optionally, use an entrypoint script to run migrations before starting the app
-# ENTRYPOINT ["./entrypoint.sh"]
-
-CMD ["node", "dist/app.js"]
+# Set the entrypoint: it will run migrations then start the app
+ENTRYPOINT ["./entrypoint.sh"]
