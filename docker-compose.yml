@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: arsen
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: webapp
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arsen"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: always
+    environment:
+      NODE_ENV: production
+      # Notice that the hostname for the database is the service name "db"
+      DATABASE_URL: postgres://arsen:root@db:5432/webapp
+      PORT: 3000
+    ports:
+      - "8200:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    # Optionally, if you have an entrypoint script that runs migrations:
+    # entrypoint: ["./entrypoint.sh"]
+
+volumes:
+  postgres_data:

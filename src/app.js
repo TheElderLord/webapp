@@ -9,10 +9,9 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.en
 dotenv.config({ path: envFile });
 
 app.use(express.json());
-app.use('/api', userRoutes);
-
-// Глобальный обработчик ошибок
 app.use(errorHandler);
+
+app.use('/api', userRoutes);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
